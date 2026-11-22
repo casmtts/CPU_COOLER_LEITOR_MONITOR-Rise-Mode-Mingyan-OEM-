@@ -1038,6 +1038,8 @@ class MonitorGUI:
         self.last_values = None
         self.last_blocked = False
         self.tray = None
+        self._tray_hidden = False
+        self._permission_pending = False
         self.ui_queue = queue.Queue()
         self.root = tk.Tk()
         self.root.title("CPU Cooler — Monitor")
@@ -1563,6 +1565,12 @@ class MonitorGUI:
 
     def show_permission_dialog(self):
         """Aviso explicativo (nao modal: nao congela a janela principal)."""
+        if getattr(self, "_tray_hidden", False):
+            # Com a janela na bandeja, um Toplevel topmost apareceria na tela
+            # e pareceria que o aplicativo "abriu" no logon. Guarda o aviso
+            # para exibi-lo somente quando o usuario restaurar a janela.
+            self._permission_pending = True
+            return
         if getattr(self, "perm_dialog", None) and self.perm_dialog.winfo_exists():
             self.perm_dialog.lift()
             return
@@ -1642,6 +1650,7 @@ class MonitorGUI:
     # --- bandeja / fechar -------------------------------------------------
     def minimize_to_tray(self):
         self.root.withdraw()
+        self._tray_hidden = True
         if self.tray is not None:
             return
         try:
@@ -1659,6 +1668,7 @@ class MonitorGUI:
             threading.Thread(target=self.tray.run, daemon=True).start()
         except Exception as exc:
             print(f"[AVISO] Bandeja indisponivel: {exc}")
+            self._tray_hidden = False
             self.root.deiconify()
             self.messagebox.showinfo(
                 "Bandeja", "Nao foi possivel criar o icone da bandeja. "
@@ -1675,12 +1685,17 @@ class MonitorGUI:
             while True:
                 action = self.ui_queue.get_nowait()
                 if action == "open":
+                    self._tray_hidden = False
                     self.root.deiconify()
                     # Quando comecou minimizado, a configuracao inicial so
                     # aparece quando o usuario abrir o monitor pela bandeja.
                     if (self._start_minimized and not os.path.exists(
                             os.path.join(DATA_DIR, "first_run.done"))):
                         self.root.after(100, self._show_first_run)
+                        self._permission_pending = False
+                    elif self._permission_pending:
+                        self._permission_pending = False
+                        self.root.after(100, self.show_permission_dialog)
                 elif action == "quit":
                     self.exit_app()
         except queue.Empty:

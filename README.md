@@ -56,6 +56,12 @@ auditar, modificar, compilar e distribuir livremente.
 
 ## Início rápido (executável)
 
+> ⚠️ O `MonitorCPUCooler.exe` versionado aqui é o binário antigo ( gerado
+> antes da correção do início minimizado ). Para usar o código atual,
+> **execute `atualizar.bat`** com duplo clique: ele instala as dependências,
+> recompila o `.exe` e recria a tarefa do logon já com `--start-minimized`.
+> Requer Python 3.12 (64 bits) no PATH.
+
 1. Baixe/clone este repositório.
 2. Dê dois cliques em **`MonitorCPUCooler.exe`**.
 3. Na **primeira execução**, a tela *Configuração inicial* mostra os requisitos:
@@ -267,6 +273,10 @@ pyinstaller --noconfirm --onefile --noconsole ^
 ```
 
 O resultado fica em `dist\MonitorCPUCooler.exe`.
+
+**Atalho:** rode `atualizar.bat` para fazer tudo isso automaticamente e já
+reinstalar a inicialização automática com o início minimizado. Após a execução,
+reinicie o PC para confirmar que a janela não aparece no logon.
 
 Para rodar sem compilar:
 
