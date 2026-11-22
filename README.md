@@ -56,13 +56,16 @@ auditar, modificar, compilar e distribuir livremente.
 
 ## Início rápido (executável)
 
-> ⚠️ O `MonitorCPUCooler.exe` versionado aqui é o binário antigo ( gerado
-> antes da correção do início minimizado ). Para usar o código atual,
-> **execute `atualizar.bat`** com duplo clique: ele instala as dependências,
-> recompila o `.exe` e recria a tarefa do logon já com `--start-minimized`.
-> Requer Python 3.12 (64 bits) no PATH.
+> ✅ **Sempre baixe o binário mais recente na [release `latest`](https://github.com/casmtts/CPU_COOLER_LEITOR_MONITOR/releases/latest).**
+> Link direto: [MonitorCPUCooler.exe](https://github.com/casmtts/CPU_COOLER_LEITOR_MONITOR/releases/latest/download/MonitorCPUCooler.exe).
+> O executável é **recompilado automaticamente no Windows a cada push na `main`**
+> e publicado nessa release — o repositório não versiona mais o `.exe`.
+>
+> Para compilar localmente, use `atualizar.bat` (instala dependências, gera o
+> `.exe` e recria a tarefa do logon com `--start-minimized`; requer Python 3.12
+> de 64 bits no PATH).
 
-1. Baixe/clone este repositório.
+1. Baixe o **`MonitorCPUCooler.exe`** da [release `latest`](https://github.com/casmtts/CPU_COOLER_LEITOR_MONITOR/releases/latest).
 2. Dê dois cliques em **`MonitorCPUCooler.exe`**.
 3. Na **primeira execução**, a tela *Configuração inicial* mostra os requisitos:
    - clique em **Instalar / configurar agora** para criar a tarefa elevada
@@ -242,7 +245,7 @@ aceitar o risco de permitir o WinRing0.
 | `LibreHardwareMonitorLib_PawnIO.dll` | LHM 0.9.5 (PawnIO) |
 | `RAMSPDToolkit-NDD.dll` | dependência da DLL 0.9.5 (SPD) |
 | `HidSharp.dll` | dependência opcional do LHM |
-| `MonitorCPUCooler.exe` | executável standalone (PyInstaller onefile) |
+| `MonitorCPUCooler.exe` | executável standalone (PyInstaller onefile) — baixado da release `latest` ou gerado por `atualizar.bat`, não versionado |
 | `MonitorCPUCooler.spec` | receita de build do PyInstaller |
 | `requirements.txt` | dependências Python (para rodar da fonte) |
 

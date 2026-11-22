@@ -4,6 +4,9 @@ dist/
 __pycache__/
 *.pyc
 
+# Binario: baixar sempre da release "latest" (gerado pelo GitHub Actions)
+MonitorCPUCooler.exe
+
 # Arquivos de estado em tempo de execucao
 monitor.log
 auto_start.log
