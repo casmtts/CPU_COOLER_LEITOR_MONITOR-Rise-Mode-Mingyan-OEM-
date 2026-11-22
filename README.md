@@ -110,6 +110,11 @@ Comando:  <pasta>\MonitorCPUCooler.exe --driver
 O UAC aparece **uma vez**, apenas na criação da tarefa. Depois disso o Windows
 inicia o programa elevado no logon, sem aviso.
 
+**No logon (após reiniciar o PC), o monitor inicia minimizado na bandeja** — a
+janela não aparece na tela. Clique no ícone da bandeja em *Abrir monitor* para
+restaurá-la. O monitoramento do cooler continua ativo normalmente enquanto a
+janela está oculta.
+
 Arquivos de estado criados ao lado do `.exe`:
 
 | Arquivo | Significado |
@@ -142,6 +147,7 @@ MonitorCPUCooler.exe --layout direct|original  posição do byte de temperatura
 MonitorCPUCooler.exe --install-startup        cria a tarefa elevada
 MonitorCPUCooler.exe --uninstall-startup      remove a tarefa
 MonitorCPUCooler.exe --startup-status         mostra se a tarefa existe
+MonitorCPUCooler.exe --start-minimized        inicia direto na bandeja (usado no logon)
 ```
 
 ### Exemplos

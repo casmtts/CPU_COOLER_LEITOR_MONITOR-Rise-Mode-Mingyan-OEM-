@@ -671,15 +671,20 @@ STARTUP_NAME = "MonitorCPUCooler"
 
 
 def startup_command():
-    """Comando de inicializacao (usa pythonw.exe para nao abrir console)."""
+    """Comando de inicializacao (usa pythonw.exe para nao abrir console).
+
+    No logon do Windows o monitor vai direto para a bandeja, sem abrir a
+    janela na tela: basta clicar no icone para restaurar.
+    """
+    flags = "--driver --start-minimized"
     if getattr(sys, "frozen", False):
-        return f'"{sys.executable}" --driver'
+        return f'"{sys.executable}" {flags}'
     exe = sys.executable
     if exe.lower().endswith("python.exe"):
         pw = os.path.join(os.path.dirname(exe), "pythonw.exe")
         if os.path.exists(pw):
             exe = pw
-    return f'"{exe}" "{os.path.abspath(__file__)}" --driver'
+    return f'"{exe}" "{os.path.abspath(__file__)}" {flags}'
 
 
 def install_startup():
@@ -1022,9 +1027,10 @@ class MonitorGUI:
         },
     }
 
-    def __init__(self, unit="C"):
+    def __init__(self, unit="C", start_minimized=False):
         from tkinter import messagebox
         self.messagebox = messagebox
+        self._start_minimized = bool(start_minimized)
         self.theme = "dark"
         for key, value in self.THEMES[self.theme].items():
             setattr(self, key, value)
@@ -1048,7 +1054,10 @@ class MonitorGUI:
         self._set_icon(self.root)
         self._build()
         self._fix_taskbar()
-        if not os.path.exists(os.path.join(DATA_DIR, "first_run.done")):
+        if self._start_minimized:
+            # Inicializacao pelo Windows (logon/reinicio): comeca na bandeja.
+            self.minimize_to_tray()
+        elif not os.path.exists(os.path.join(DATA_DIR, "first_run.done")):
             self.root.after(700, self._show_first_run)
 
     def _fix_taskbar(self):
@@ -1667,6 +1676,11 @@ class MonitorGUI:
                 action = self.ui_queue.get_nowait()
                 if action == "open":
                     self.root.deiconify()
+                    # Quando comecou minimizado, a configuracao inicial so
+                    # aparece quando o usuario abrir o monitor pela bandeja.
+                    if (self._start_minimized and not os.path.exists(
+                            os.path.join(DATA_DIR, "first_run.done"))):
+                        self.root.after(100, self._show_first_run)
                 elif action == "quit":
                     self.exit_app()
         except queue.Empty:
@@ -1794,6 +1808,8 @@ def main():
                     help="usa o driver WinRing0: eleva, le a CPU real e desliga o fallback da GPU")
     ap.add_argument("--no-gui", action="store_true",
                     help="nao abrir a janela do leitor (apenas console)")
+    ap.add_argument("--start-minimized", action="store_true",
+                    help="iniciar minimizado na bandeja (usado no logon do Windows)")
     ap.add_argument("--no-fallback", action="store_true",
                     help="(padrao) nunca usar a GPU no lugar da CPU")
     ap.add_argument("--fallback-gpu", action="store_true",
@@ -1853,7 +1869,8 @@ def main():
     gui = None
     if not args.no_gui:
         try:
-            gui = MonitorGUI(args.unit.upper())
+            gui = MonitorGUI(args.unit.upper(),
+                             start_minimized=args.start_minimized)
         except Exception as exc:
             print(f"[AVISO] Nao foi possivel abrir a janela: {exc}")
 
