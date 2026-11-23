@@ -1,0 +1,17 @@
+# Build / Python
+build/
+dist/
+__pycache__/
+*.pyc
+
+# Arquivos de estado em tempo de execucao
+monitor.log
+auto_start.log
+first_run.done
+task_configured
+reader_debug.txt
+
+# Temporarios
+_*.ps1
+_*.bat
+*.nupkg

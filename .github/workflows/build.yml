@@ -1,0 +1,90 @@
+name: Build e publicar binario
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12 (64 bits)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: 'x64'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller
+
+      - name: Compilar executavel
+        shell: cmd
+        run: |
+          python -m PyInstaller --noconfirm --onefile --noconsole ^
+            --name MonitorCPUCooler ^
+            --icon cooler_icon.ico ^
+            --add-data "read_lhm.ps1;." ^
+            --add-data "cooler_icon.png;." ^
+            --add-data "cooler_icon.ico;." ^
+            --add-data "LibreHardwareMonitorLib.dll;." ^
+            --add-data "LibreHardwareMonitorLib_PawnIO.dll;." ^
+            --add-data "RAMSPDToolkit-NDD.dll;." ^
+            --add-data "install_task.ps1;." ^
+            --add-data "uninstall_task.ps1;." ^
+            --add-data "desativar_hvci.bat;." ^
+            --hidden-import=wmi --hidden-import=win32com.client ^
+            --hidden-import=pythoncom --hidden-import=pywintypes monitor.py
+
+      - name: Conferir binario gerado
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist\MonitorCPUCooler.exe")) {
+            throw "PyInstaller nao gerou dist\MonitorCPUCooler.exe"
+          }
+          Get-Item "dist\MonitorCPUCooler.exe" | Select-Object Name,Length
+
+      - name: Criar release "latest" (se nao existir)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view latest 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create latest `
+              --title "Monitor CPU Cooler (latest)" `
+              --notes "Binario recompilado automaticamente a cada push na branch main. Baixe sempre o asset MonitorCPUCooler.exe desta release."
+          }
+
+      - name: Enviar binario para a release "latest"
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload latest "dist\MonitorCPUCooler.exe" --clobber
+
+      - name: Atualizar o .exe na raiz do repositorio
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Copy-Item "dist\MonitorCPUCooler.exe" "MonitorCPUCooler.exe" -Force
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MonitorCPUCooler.exe
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "Atualiza binario compilado automaticamente [skip ci]"
+            git push
+          } else {
+            Write-Host "Binario ja estava atualizado; nada a commitar."
+          }
